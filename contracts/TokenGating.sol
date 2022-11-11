@@ -10,7 +10,7 @@ interface ITOKEN {
 abstract contract TokenGating {
 
     mapping(address => uint256) internal _whitelisting;
-    address[] public whitelistedAddresses;
+    address[] internal _whitelistedAddresses;
 
     modifier validateOwner(address _contract, uint _id) {
         _verifyOwner(_contract, _id);
@@ -33,13 +33,13 @@ abstract contract TokenGating {
 
     function _updateWhitelist(address _contract, bool _add) private {
         if(_add) {
-            whitelistedAddresses.push(_contract);
-            _whitelisting[_contract] = whitelistedAddresses.length;
+            _whitelistedAddresses.push(_contract);
+            _whitelisting[_contract] = _whitelistedAddresses.length;
         } else {
-            _whitelisting[whitelistedAddresses[whitelistedAddresses.length-1]] = _whitelisting[_contract];
-            whitelistedAddresses[_whitelisting[_contract]-1] = whitelistedAddresses[whitelistedAddresses.length-1];
+            _whitelisting[_whitelistedAddresses[_whitelistedAddresses.length-1]] = _whitelisting[_contract];
+            _whitelistedAddresses[_whitelisting[_contract]-1] = _whitelistedAddresses[_whitelistedAddresses.length-1];
             _whitelisting[_contract] = 0;
-            whitelistedAddresses.pop();
+            _whitelistedAddresses.pop();
         }
     }
 
@@ -51,5 +51,9 @@ abstract contract TokenGating {
     function _verifyBalance(address _contract) private view {
         require(_whitelisting[_contract] != 0, "Not WL");
         require(ITOKEN(_contract).balanceOf(msg.sender) > 0, "No Balance");
+    }
+
+    function whitelistedAddresses() public view returns(address[] memory) {
+        return _whitelistedAddresses;
     }
 }
