@@ -9,7 +9,8 @@ interface ITOKEN {
 
 abstract contract TokenGating {
 
-    mapping(address => bool) internal _whitelisting;
+    mapping(address => uint256) internal _whitelisting;
+    address[] public whitelistedAddresses;
 
     modifier validateOwner(address _contract, uint _id) {
         _verifyOwner(_contract, _id);
@@ -23,19 +24,32 @@ abstract contract TokenGating {
 
     function _updateWhitelist(address[] memory _addresses, bool _val) internal {
         for(uint i=0; i< _addresses.length; i++) {
-            if (_whitelisting[_addresses[i]] != _val) {
-                _whitelisting[_addresses[i]] = _val;
+            if ((_whitelisting[_addresses[i]] == 0 && _val) || 
+                (_whitelisting[_addresses[i]] != 0 && !_val)) {
+                _updateWhitelist(_addresses[i], _val);
             }
         }
     }
 
+    function _updateWhitelist(address _contract, bool _add) private {
+        if(_add) {
+            whitelistedAddresses.push(_contract);
+            _whitelisting[_contract] = whitelistedAddresses.length;
+        } else {
+            _whitelisting[whitelistedAddresses[whitelistedAddresses.length-1]] = _whitelisting[_contract];
+            whitelistedAddresses[_whitelisting[_contract]-1] = whitelistedAddresses[whitelistedAddresses.length-1];
+            _whitelisting[_contract] = 0;
+            whitelistedAddresses.pop();
+        }
+    }
+
     function _verifyOwner(address _contract, uint _id) private view {
-        require(_whitelisting[_contract] == true, "Not WL");
+        require(_whitelisting[_contract] != 0, "Not WL");
         require(ITOKEN(_contract).ownerOf(_id) == msg.sender, "Not Owner");
     }
 
     function _verifyBalance(address _contract) private view {
-        require(_whitelisting[_contract] == true, "Not WL");
+        require(_whitelisting[_contract] != 0, "Not WL");
         require(ITOKEN(_contract).balanceOf(msg.sender) > 0, "No Balance");
     }
 }
