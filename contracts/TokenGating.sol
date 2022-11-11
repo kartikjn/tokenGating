@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: None
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.1;
 
-interface IERC721 {
+interface ITOKEN {
     function balanceOf(address owner) external view returns (uint256 balance);
     function ownerOf(uint256 tokenId) external view returns (address owner);
 }
@@ -31,11 +31,11 @@ abstract contract TokenGating {
 
     function _verifyOwner(address _contract, uint _id) private view {
         require(_whitelisting[_contract] == true, "Not WL");
-        require(IERC721(_contract).ownerOf(_id) == msg.sender, "Invalid");
+        require(ITOKEN(_contract).ownerOf(_id) == msg.sender, "Not Owner");
     }
 
     function _verifyBalance(address _contract) private view {
         require(_whitelisting[_contract] == true, "Not WL");
-        require(IERC721(_contract).balanceOf(msg.sender) > 0, "Invalid");
+        require(ITOKEN(_contract).balanceOf(msg.sender) > 0, "No Balance");
     }
 }
