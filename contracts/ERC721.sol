@@ -2,9 +2,8 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./TokenGating.sol";
 
-contract MyToken is ERC721, TokenGating {
+contract MyToken is ERC721 {
     address public admin;
     uint256 public id = 0;
 
@@ -14,13 +13,12 @@ contract MyToken is ERC721, TokenGating {
         admin = msg.sender;
     }
 
-    function mint(address _contract) external validateBalance(_contract) {
+    function mint() external {
         id++;
         _mint(msg.sender, id);
     }
 
     function setBaseURI(string memory _uri) external {
-        require(msg.sender == admin, "Not owner");
         require(bytes(_uri).length > 0, "invalid base uri");
         baseURI = _uri;
     }
@@ -30,10 +28,5 @@ contract MyToken is ERC721, TokenGating {
             return baseURI;
         }
         return "";
-    }
-
-    function updateWhitelist(address[] memory _contracts, bool _val) external {
-        require(msg.sender == admin, "Not owner");
-        _updateWhitelist(_contracts, _val);
     }
 }
